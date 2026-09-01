@@ -1,0 +1,16 @@
+# THE RUSTIC TREES DEPENDENCY LIST (There are literally none :cry:)
+[package]
+name = "rustic_trees"
+version = "0.1.0"
+edition = "2024"
+authors = ["JustJazzFR jazzy.productions.incorporated@gmail.com"]
+description = "easy to use c tree wrappers made in rust"
+license = "MIT"
+# ADD REPOSITORY LINK HERE DO NOT FORGET ELSE GAY.
+keywords = ["ffi", "c", "tree", "binary", "n-ary"]
+readme = "README.md"
+categories = ["external-ffi-bindings", "data-structures"]
+
+[build-dependencies]
+cc = "1.0"
+bindgen = "0.69"
