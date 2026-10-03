@@ -4,6 +4,7 @@ use std::path::PathBuf;
 fn main() {
     cc::Build::new()
         .file("src/c/cbasictrees.c")
+        .include("src/c")
         .compile("cbasictrees");
     println!("cargo:rerun-if-changed=src/c/cbasictrees.h");
     println!("cargo:rerun-if-changed=src/c/cbasictrees.c");
@@ -20,6 +21,4 @@ fn main() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings.");
-    println!("cargo:rerun-if-changed=src/c/cbasictrees.h");
-    println!("cargo:rerun-if-changed=src/c/cbasictrees.c");
 }

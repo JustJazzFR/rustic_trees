@@ -1,8 +1,8 @@
 //this took me just 150,290 seconds of my life :cry:
 // Written by @JustJazzFR
+// ill probalby release this as its own separate c library.
 #include "cbasictrees.h"
 #include <stdlib.h>
-#include <string.h>
 //---------------------------------|
 // binary node fncs                |
 // --------------------------------|
@@ -17,45 +17,46 @@ CBinaryNode* new_node(void* data) {
     return node;
 }
 
-void insert(CBinaryNode** root, void* data) {
+void insert(CBinaryNode** root, void* data, CompareFnc cmp) {
     if(*root == NULL) {
         *root = new_node(data);
         return;
     }
-    if(strcmp((char*)data, (char*)(*root)->data) < 0) {
-        insert(&((*root)->left), data);
+    if(cmp(data, (*root)->data) < 0) {
+        insert(&((*root)->left), data, cmp);
     } else {
-        insert(&((*root)->right), data);
+        insert(&((*root)->right), data, cmp);
     }
 }
 
-void* del(CBinaryNode** root, void* what) {
-    if (*root == NULL) return NULL;
+CBinaryNode* del(CBinaryNode** root, void* what, CompareFnc cmp) {
+    if(*root == NULL) return NULL;
+    int comp = cmp(what, (*root)->data);
 
-    int cmp = strcmp((char*)what, (char*)(*root)->data);
-
-    if (cmp < 0) return del(&((*root)->left), what);
-    if (cmp > 0) return del(&((*root)->right), what);
+    if(comp < 0) return del(&((*root)->left), what, cmp);
+    if(comp > 0) return del(&((*root)->right), what, cmp);
 
     CBinaryNode* target = *root;
-    void* data = target->data;
 
-    if (target->left == NULL && target->right == NULL) {
+    if(target->left == NULL && target->right == NULL) {
         *root = NULL;
-        free(target);
-    } else if (target->left == NULL) {
+    } else if(target->left == NULL) {
         *root = target->right;
-        free(target);
-    } else if (target->right == NULL) {
+    } else if(target->right == NULL) {
         *root = target->left;
-        free(target);
     } else {
-        CBinaryNode* succ = target->right; // succ = successor
-        while (succ->left != NULL) succ = succ->left;
+        CBinaryNode* succ = target->right;
+        while(succ->left != NULL) succ = succ->left;
+
+        void* tmp = target->data;
         target->data = succ->data;
-        return del(&(target->right), succ->data);
+        succ->data = tmp;
+
+        return del(&(target->right), what, cmp);
     }
-    return data;
+    target->left = NULL;
+    target->right = NULL;
+    return target;
 }
 
 void clear(CBinaryNode** root) {
@@ -66,12 +67,12 @@ void clear(CBinaryNode** root) {
     *root = NULL;
 }
 
-CBinaryNode* find(CBinaryNode* root, void* what) {
+CBinaryNode* find(CBinaryNode* root, void* what, CompareFnc cmp) {
     if(root == NULL) return NULL;
-    int cmp = strcmp((char*)what, (char*)root->data);
-    if(cmp == 0) return root;
-    if (cmp < 0) return find(root->left, what);
-    return find(root->right, what);
+    int comp = cmp(what, root->data);
+    if(comp == 0) return root;
+    if (comp < 0) return find(root->left, what, cmp);
+    return find(root->right, what, cmp);
 }
 
 bool is_empty(CBinaryNode* root) {
@@ -101,19 +102,19 @@ void ninsert(CNaryNode** root, void* data) {
     (*root)->count++;
 }
 
-CNaryNode* ndel(CNaryNode* root, unsigned int index) {
-    if (root == NULL || index >= root->count) return NULL;
+CNaryNode* ndel(CNaryNode** root, unsigned int index) {
+    if (*root == NULL || index >= (*root)->count) return NULL;
 
-    CNaryNode* deleted_node = root->children[index];
-    for (unsigned int i = index; i < root->count - 1; i++) {
-        root->children[i] = root->children[i + 1];
+    CNaryNode* deleted_node = (*root)->children[index];
+    for (unsigned int i = index; i < (*root)->count - 1; i++) {
+        (*root)->children[i] = (*root)->children[i + 1];
     }
-    root->count--;
-    if (root->count > 0) {
-        root->children = (CNaryNode**)realloc(root->children, sizeof(CNaryNode*) * root->count);
+    (*root)->count--;
+    if ((*root)->count > 0) {
+        (*root)->children = (CNaryNode**)realloc((*root)->children, sizeof(CNaryNode*) * (*root)->count);
     } else {
-        free(root->children);
-        root->children = NULL;
+        free((*root)->children);
+        (*root)->children = NULL;
     }
 
     return deleted_node;
@@ -130,12 +131,11 @@ void nclear(CNaryNode** root) {
     *root = NULL;
 }
 
-CNaryNode* nfind(CNaryNode* root, void* what) {
-    unsigned int idx = 0;
+CNaryNode* nfind(CNaryNode* root, void* what, CompareFnc cmp) {
     if(root == NULL) return NULL;
-    if(strcmp((char*)root->data, (char*)what) == 0) return root;
+    if(cmp(root->data, what) == 0) return root;
     for(unsigned int i = 0; i < root->count; i++) {
-        CNaryNode* found = nfind(root->children[i], what);
+        CNaryNode* found = nfind(root->children[i], what, cmp);
         if(found != NULL) return found;
     }
     return NULL ;

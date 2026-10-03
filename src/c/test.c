@@ -1,21 +1,24 @@
 //TEST FILE
 
-#include <stdio.h>
 #include "cbasictrees.h"
-#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
+int stringcmp(const void* a, const void* b) {
+    return strcmp((const char*)a, (const char*)b);
+}
 int main() {
     //BINARY TREE TEST
     CBinaryNode* tree = (CBinaryNode*)new_node((char*)"File");
     printf("Tree size: %zu\n", size_of(tree));
 
-    insert(&tree, (char*)"Data 1");
-    insert(&tree, (char*)"Data 2");
-    const char* data = (const char*)find(tree, (char*)"Data 2")->data;
+    insert(&tree, (char*)"Data 1", stringcmp);
+    insert(&tree, (char*)"Data 2", stringcmp);
+    const char* data = (const char*)find(tree, (char*)"Data 2", stringcmp)->data;
     data != NULL? printf("Data found: %s\n", data) : printf("Data not found\n");
     printf("Tree size: %zu\n", size_of(tree));
-    void* deleted = del(&tree, (char*)"Data 2");
-    printf("Deleted: %s\n", (char*)deleted);
+    CBinaryNode* deleted = del(&tree, (char*)"Data 2", stringcmp);
+    printf("Deleted: %s\n", (char*)deleted->data);
     printf("Tree size: %zu\n", size_of(tree));
     clear(&tree);
     //Output of this^^:
@@ -39,11 +42,11 @@ int main() {
     ninsert(&(nary_tree->children[1]), (char*)"hij");
     printf("Tree size: %zu\n", nsize_of(nary_tree));
 
-    CNaryNode* nfound = nfind(nary_tree, (char*)"def");
+    CNaryNode* nfound = nfind(nary_tree, (char*)"def", stringcmp);
     if(nfound != NULL) {
         printf("data found: %s\n", (char*)nfound->data);
     }
-    CNaryNode* removed = ndel(nary_tree, 0);
+    CNaryNode* removed = ndel(&nary_tree, 0);
     if (removed != NULL) {
         printf("Removed branch starting with: %s\n", (char*)removed->data);
         nclear(&removed);
